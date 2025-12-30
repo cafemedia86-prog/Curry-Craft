@@ -3,6 +3,7 @@ import { useCart } from '../context/CartContext';
 import { CreditCard, Wallet, ArrowLeft, CheckCircle2, ShoppingBag, MapPin, Plus, ChevronDown, Ticket, TicketSlash } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { useAddresses } from '../context/AddressContext';
+import { useLoyalty } from '../context/LoyaltyContext';
 import AddressPickerModal from './AddressPickerModal';
 
 interface CheckoutPageProps {
@@ -13,11 +14,20 @@ interface CheckoutPageProps {
 const CheckoutPage: React.FC<CheckoutPageProps> = ({ onBack, onOrderPlaced }) => {
     const { items, cartTotal, clearCart, applyCoupon, removeCoupon, couponCode, discountAmount } = useCart();
     const { user, updateWallet, addLoyaltyPoints } = useAuth();
+    const { calculatePointsToAward, settings } = useLoyalty();
     const { addresses, addAddress } = useAddresses();
     const [selectedAddressId, setSelectedAddressId] = useState<string | null>(
         addresses.find(a => a.isDefault)?.id || (addresses.length > 0 ? addresses[0].id : null)
     );
     const [paymentMethod, setPaymentMethod] = useState<'wallet' | 'card'>('wallet');
+    const [redeemPoints, setRedeemPoints] = useState(false);
+
+    // Loyalty Logic
+    const pointsAvailable = user?.loyaltyPoints || 0;
+    // Max 50% of the total can be paid via points? Or just straight up. Let's assume 1 point = 1 rupee for now as per sql, but let's check settings if we had conversion rate.
+    // For simplicity: 1 Point = 1 Rupee Discount (Configurable in future, but hardcoded in SQL redeem_points function too)
+    // Check min redemption
+    const canRedeem = pointsAvailable >= (settings?.min_redemption_points || 100);
     const [isPlacingOrder, setIsPlacingOrder] = useState(false);
     const [orderSuccess, setOrderSuccess] = useState(false);
     const [isPickerOpen, setIsPickerOpen] = useState(false);
@@ -26,8 +36,16 @@ const CheckoutPage: React.FC<CheckoutPageProps> = ({ onBack, onOrderPlaced }) =>
     const [isValidatingCoupon, setIsValidatingCoupon] = useState(false);
 
     const subTotalAfterDiscount = Math.max(0, cartTotal - discountAmount);
-    const tax = Math.round(subTotalAfterDiscount * 0.05);
-    const total = subTotalAfterDiscount + tax;
+    // Apply loyalty discount if enabled - use configurable redemption rate
+    const maxRedeemableValue = pointsAvailable * (settings?.redemption_rate || 1.0);
+    const loyaltyDiscount = redeemPoints ? Math.min(maxRedeemableValue, subTotalAfterDiscount) : 0;
+    const pointsActuallyUsed = settings?.redemption_rate ? Math.ceil(loyaltyDiscount / settings.redemption_rate) : loyaltyDiscount;
+    const taxableAmount = Math.max(0, subTotalAfterDiscount - loyaltyDiscount);
+
+    const tax = Math.round(taxableAmount * 0.05);
+    const total = taxableAmount + tax;
+
+    const pointsToEarn = calculatePointsToAward(total);
 
     const handleApplyCoupon = async () => {
         if (!couponInput.trim()) return;
@@ -61,8 +79,16 @@ const CheckoutPage: React.FC<CheckoutPageProps> = ({ onBack, onOrderPlaced }) =>
                 await updateWallet(-total);
             }
 
-            // Add loyalty points (10% of total)
-            await addLoyaltyPoints(Math.floor(total * 0.1));
+            // Deduct redeemed points
+            if (redeemPoints && pointsActuallyUsed > 0) {
+                // Deduct the actual points used (not the discount amount)
+                await addLoyaltyPoints(-pointsActuallyUsed);
+            }
+
+            // Add loyalty points for this order
+            if (pointsToEarn > 0) {
+                await addLoyaltyPoints(pointsToEarn);
+            }
 
             const orderData = {
                 items: items.map(i => ({ id: i.id, name: i.name, quantity: i.quantity, price: i.price })),
@@ -241,9 +267,46 @@ const CheckoutPage: React.FC<CheckoutPageProps> = ({ onBack, onOrderPlaced }) =>
                             <span>Taxes (5%)</span>
                             <span>₹ {tax}</span>
                         </div>
+
+                        {/* Loyalty Redemption Toggle */}
+                        {user && settings && pointsAvailable > 0 && (
+                            <div className="py-3 border-t border-dotted border-green-800/30">
+                                <div className="flex items-center justify-between mb-2">
+                                    <div className="flex items-center gap-2 text-sm text-green-200">
+                                        <CheckCircle2 size={16} className={canRedeem ? "text-amber-500" : "text-gray-500"} />
+                                        <span>Redeem Points ({pointsAvailable})</span>
+                                    </div>
+                                    <label className="relative inline-flex items-center cursor-pointer">
+                                        <input
+                                            type="checkbox"
+                                            className="sr-only peer"
+                                            checked={redeemPoints}
+                                            disabled={!canRedeem}
+                                            onChange={(e) => setRedeemPoints(e.target.checked)}
+                                        />
+                                        <div className={`w-9 h-5 rounded-full peer peer-focus:ring-2 peer-focus:ring-amber-500/20 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all ${!canRedeem ? 'bg-gray-700 cursor-not-allowed' : 'bg-gray-700 peer-checked:bg-amber-600'}`}></div>
+                                    </label>
+                                </div>
+                                {!canRedeem && (
+                                    <div className="text-[10px] text-red-400 pl-6">Min. {settings.min_redemption_points} points required</div>
+                                )}
+                                {redeemPoints && (
+                                    <div className="flex justify-between text-sm text-amber-400 font-medium pl-6">
+                                        <span>Points Redeemed ({pointsActuallyUsed} pts)</span>
+                                        <span>- ₹ {loyaltyDiscount.toFixed(0)}</span>
+                                    </div>
+                                )}
+                            </div>
+                        )}
+
                         <div className="flex justify-between text-lg font-bold text-amber-400 pt-2 border-t border-dashed border-green-800/30 mt-2">
                             <span>Total Amount</span>
                             <span>₹ {total}</span>
+                        </div>
+                        <div className="text-center mt-2">
+                            <span className="text-[10px] uppercase tracking-widest text-green-400/50 bg-green-900/30 px-2 py-1 rounded-full">
+                                You will earn {pointsToEarn} Royal Points
+                            </span>
                         </div>
                     </div>
                 </section>

@@ -48,12 +48,10 @@ const BottomNav: React.FC<BottomNavProps> = ({ activeTab, onTabChange, isAdmin }
           <span className="text-[10px] font-medium tracking-wide">Offers</span>
         </button>
 
-        {!isSuperAdmin && (
-          <button onClick={() => onTabChange('loyalty')} className={getTabClass('loyalty')}>
-            <Award size={24} className={activeTab === 'loyalty' ? "fill-amber-500/20" : ""} />
-            <span className="text-[10px] font-medium tracking-wide">Loyalty</span>
-          </button>
-        )}
+        <button onClick={() => onTabChange('loyalty')} className={getTabClass('loyalty')}>
+          <Award size={24} className={activeTab === 'loyalty' ? "fill-amber-500/20" : ""} />
+          <span className="text-[10px] font-medium tracking-wide">Loyalty</span>
+        </button>
 
         <button onClick={() => onTabChange('profile')} className={getTabClass('profile')}>
           <User size={24} className={activeTab === 'profile' ? "fill-amber-500/20" : ""} />

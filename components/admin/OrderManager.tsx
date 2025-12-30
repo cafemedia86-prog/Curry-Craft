@@ -1,9 +1,11 @@
 import React, { useState } from 'react';
 import { useOrders, OrderStatus } from '../../context/OrderContext';
-import { CheckCircle2, XCircle, Package, Truck, RotateCcw, Search, Filter, ShoppingBag } from 'lucide-react';
+import { CheckCircle2, XCircle, Package, Truck, RotateCcw, Search, Filter, ShoppingBag, Bell, BellOff } from 'lucide-react';
+import { useOrderAlerts } from '../../hooks/useOrderAlerts';
 
 const OrderManager: React.FC = () => {
     const { orders, updateOrderStatus, refundOrder, rejectOrder } = useOrders();
+    const { newOrders, isPlaying, dismissOrder, stopAlert } = useOrderAlerts(true);
     const [filter, setFilter] = useState<OrderStatus | 'All'>('All');
     const [rejectingOrderId, setRejectingOrderId] = useState<string | null>(null);
     const [rejectionReason, setRejectionReason] = useState('');
@@ -26,9 +28,15 @@ const OrderManager: React.FC = () => {
     const handleReject = async () => {
         if (rejectingOrderId && rejectionReason.trim()) {
             await rejectOrder(rejectingOrderId, rejectionReason);
+            dismissOrder(rejectingOrderId);
             setRejectingOrderId(null);
             setRejectionReason('');
         }
+    };
+
+    const handleAcceptOrder = async (orderId: string) => {
+        await updateOrderStatus(orderId, 'Confirmed');
+        dismissOrder(orderId);
     };
 
     return (
@@ -52,6 +60,34 @@ const OrderManager: React.FC = () => {
                     ))}
                 </div>
             </header>
+
+            {/* New Order Alert Banner */}
+            {newOrders.length > 0 && (
+                <div className="mb-6 bg-gradient-to-r from-red-600 to-orange-600 p-6 rounded-3xl border-2 border-red-400 shadow-2xl animate-pulse">
+                    <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-4">
+                            <div className="p-3 bg-white/20 rounded-full">
+                                <Bell size={32} className="text-white animate-bounce" />
+                            </div>
+                            <div>
+                                <h3 className="text-2xl font-bold text-white mb-1">
+                                    {newOrders.length} New Order{newOrders.length > 1 ? 's' : ''}!
+                                </h3>
+                                <p className="text-white/80 text-sm">
+                                    {isPlaying ? '🔊 Alert playing...' : 'Alert dismissed'}
+                                </p>
+                            </div>
+                        </div>
+                        <button
+                            onClick={stopAlert}
+                            className="p-3 bg-white/20 hover:bg-white/30 rounded-full transition-all"
+                            title="Stop Alert"
+                        >
+                            <BellOff size={24} className="text-white" />
+                        </button>
+                    </div>
+                </div>
+            )}
 
             <div className="space-y-4">
                 {filteredOrders.length === 0 ? (
@@ -104,7 +140,7 @@ const OrderManager: React.FC = () => {
                                                     <XCircle size={20} />
                                                 </button>
                                                 <button
-                                                    onClick={() => updateOrderStatus(order.id, 'Confirmed')}
+                                                    onClick={() => handleAcceptOrder(order.id)}
                                                     className="p-2 bg-green-500/10 text-green-500 hover:bg-green-500 hover:text-white rounded-xl transition-all"
                                                     title="Confirm Order"
                                                 >

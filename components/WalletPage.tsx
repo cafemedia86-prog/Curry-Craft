@@ -2,6 +2,80 @@ import React from 'react';
 import { Wallet, CreditCard, Plus, Clock } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import { useAuth } from '../context/AuthContext';
+import { useLoyalty } from '../context/LoyaltyContext';
+import { Crown, Star, ChevronRight } from 'lucide-react';
+
+const LoyaltyStatusCard = () => {
+    const { user } = useAuth();
+    const { getTier, nextTier } = useLoyalty();
+
+    if (!user) return null;
+
+    const currentPoints = user.loyaltyPoints || 0;
+    const tier = getTier(currentPoints);
+    const next = nextTier(currentPoints);
+
+    // Progress calculation
+    let progress = 100;
+    if (next) {
+        const span = next.minPoints - tier.minPoints;
+        const currentInSpan = currentPoints - tier.minPoints;
+        progress = Math.min(100, Math.max(0, (currentInSpan / span) * 100));
+    }
+
+    const getTierColor = (name: string) => {
+        switch (name.toLowerCase()) {
+            case 'silver': return 'from-slate-300 to-slate-400';
+            case 'gold': return 'from-yellow-400 to-amber-500';
+            default: return 'from-orange-700 to-amber-800'; // Bronze
+        }
+    };
+
+    return (
+        <div className="mb-8 relative overflow-hidden group">
+            <div className={`absolute inset-0 bg-gradient-to-r ${getTierColor(tier.name)} opacity-10 rounded-[2rem] transform transition-transform group-hover:scale-105`} />
+            <div className="bg-[#034435]/90 backdrop-blur-md p-6 rounded-[2rem] border border-green-800/30 relative z-10">
+                <div className="flex justify-between items-start mb-4">
+                    <div>
+                        <div className="flex items-center gap-2 mb-1">
+                            <Crown className={`text-amber-500`} size={20} />
+                            <span className="text-amber-500 font-bold uppercase tracking-widest text-xs">Royal Loyalty</span>
+                        </div>
+                        <h3 className={`text-2xl font-serif text-white`}>{tier.name} Member</h3>
+                    </div>
+                    <div className="text-right">
+                        <div className="text-3xl font-bold text-white">{currentPoints}</div>
+                        <div className="text-green-400/40 text-[10px] uppercase tracking-widest">Points</div>
+                    </div>
+                </div>
+
+                <div className="mb-4">
+                    <div className="flex justify-between text-xs mb-2">
+                        <span className="text-green-200/50">Current Tier Benefit</span>
+                        <span className="text-amber-400 font-bold">{tier.multiplier}x Points</span>
+                    </div>
+                    <div className="h-2 bg-green-900/50 rounded-full overflow-hidden">
+                        <div
+                            className={`h-full bg-gradient-to-r ${getTierColor(tier.name)} transition-all duration-1000`}
+                            style={{ width: `${progress}%` }}
+                        />
+                    </div>
+                    {next && (
+                        <div className="flex justify-between items-center mt-2">
+                            <span className="text-[10px] text-green-400/40">
+                                {next.minPoints - currentPoints} points to {next.name}
+                            </span>
+                            <span className="text-[10px] text-green-400/40">{next.name}</span>
+                        </div>
+                    )}
+                    {!next && (
+                        <div className="mt-2 text-[10px] text-amber-500/60 text-center font-bold uppercase tracking-widest">Max Tier Reached</div>
+                    )}
+                </div>
+            </div>
+        </div>
+    );
+};
 
 const WalletPage = () => {
     const { user } = useAuth();
@@ -28,6 +102,8 @@ const WalletPage = () => {
                     <Wallet size={180} />
                 </div>
             </div>
+
+            <LoyaltyStatusCard />
 
             <h3 className="text-green-950 font-bold mb-4 px-1">Payment Methods</h3>
             <div className="space-y-4 mb-8">

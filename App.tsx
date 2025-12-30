@@ -14,6 +14,7 @@ import { AuthProvider, useAuth } from './context/AuthContext';
 import { MenuProvider } from './context/MenuContext';
 import { OrderProvider, useOrders } from './context/OrderContext';
 import { AddressProvider } from './context/AddressContext';
+import { LoyaltyProvider } from './context/LoyaltyContext';
 import LoginModal from './components/LoginModal';
 import AdminDashboard from './components/admin/AdminDashboard';
 
@@ -216,13 +217,15 @@ function App() {
     return (
         <AuthProvider>
             <MenuProvider>
-                <OrderProvider>
-                    <CartProvider>
-                        <AddressProvider>
-                            <AppContent />
-                        </AddressProvider>
-                    </CartProvider>
-                </OrderProvider>
+                <LoyaltyProvider>
+                    <OrderProvider>
+                        <CartProvider>
+                            <AddressProvider>
+                                <AppContent />
+                            </AddressProvider>
+                        </CartProvider>
+                    </OrderProvider>
+                </LoyaltyProvider>
             </MenuProvider>
         </AuthProvider>
     );
