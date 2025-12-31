@@ -6,7 +6,9 @@ import LoyaltyManager from './LoyaltyManager';
 import StaffManager from './StaffManager';
 import OfferManager from './OfferManager';
 import StoreSettings from './StoreSettings';
+import KitchenDisplay from './KitchenDisplay';
 import { useAuth } from '../../context/AuthContext';
+import logo from '../../assets/logo.png';
 
 interface AdminDashboardProps {
     activeSubTab: string;
@@ -32,6 +34,8 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ activeSubTab }) => {
                 return user?.role === 'ADMIN' ? <StaffManager /> : <AdminHome />;
             case 'settings':
                 return user?.role === 'ADMIN' ? <StoreSettings /> : <AdminHome />;
+            case 'kitchen':
+                return <KitchenDisplay />;
             default:
                 return <AdminHome />;
         }
@@ -56,7 +60,8 @@ const AdminHome = () => {
 
     return (
         <div className="p-6">
-            <header className="mb-10">
+            <header className="mb-10 text-center">
+                <img src={logo} alt="Curry Craft" className="h-20 mx-auto mb-6 object-contain" />
                 <h2 className="text-3xl font-serif text-white">Admin Dashboard</h2>
                 <p className="text-green-400/50">Overview of Curry Craft performance</p>
             </header>

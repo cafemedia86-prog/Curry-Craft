@@ -1,5 +1,5 @@
 import React from 'react';
-import { Home, Compass, Wallet, User, ShieldCheck, Package, ChefHat, Award, Users, Tag, Settings } from 'lucide-react';
+import { Home, Compass, Wallet, User, ShieldCheck, Package, ChefHat, Award, Users, Tag, Settings, Monitor } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 
 interface BottomNavProps {
@@ -29,6 +29,11 @@ const BottomNav: React.FC<BottomNavProps> = ({ activeTab, onTabChange, isAdmin }
         <button onClick={() => onTabChange('orders')} className={getTabClass('orders')}>
           <Package size={24} className={activeTab === 'orders' ? "fill-amber-500/20" : ""} />
           <span className="text-[10px] font-medium tracking-wide">Orders</span>
+        </button>
+
+        <button onClick={() => onTabChange('kitchen')} className={getTabClass('kitchen')}>
+          <Monitor size={24} className={activeTab === 'kitchen' ? "fill-amber-500/20" : ""} />
+          <span className="text-[10px] font-bold tracking-wide">KDS</span>
         </button>
 
         <button onClick={() => onTabChange('dishes')} className={getTabClass('dishes')}>

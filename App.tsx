@@ -197,7 +197,7 @@ function AppContent() {
                 onTabChange={handleTabChange}
                 isAdmin={user?.role === 'ADMIN' || user?.role === 'MANAGER'}
             />
-            <CartSidebar />
+            {!(user?.role === 'ADMIN' || user?.role === 'MANAGER') && <CartSidebar />}
             {isAuthModalOpen && (
                 <LoginModal
                     onClose={() => {

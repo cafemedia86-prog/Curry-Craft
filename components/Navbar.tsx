@@ -2,6 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { MapPin, ShoppingCart, User, Search, SlidersHorizontal, Loader2 } from 'lucide-react';
 import { useCart } from '../context/CartContext';
 
+import { useAuth } from '../context/AuthContext';
+
 interface NavbarProps {
   onSearch: (query: string) => void;
   searchTerm: string;
@@ -9,6 +11,8 @@ interface NavbarProps {
 
 const Navbar: React.FC<NavbarProps> = ({ onSearch, searchTerm }) => {
   const { cartCount, setIsCartOpen } = useCart();
+  const { user } = useAuth();
+  const isAdminOrManager = user?.role === 'ADMIN' || user?.role === 'MANAGER';
   const [location, setLocation] = useState('New York, USA');
   const [loadingLocation, setLoadingLocation] = useState(false);
 
@@ -45,6 +49,8 @@ const Navbar: React.FC<NavbarProps> = ({ onSearch, searchTerm }) => {
 
   return (
     <div className="sticky top-0 z-40 bg-[#022c22] pt-6 pb-4 px-5 shadow-xl rounded-b-3xl">
+
+
       {/* Top Row: Location & Actions */}
       <div className="flex justify-between items-start mb-6">
         <div className="flex flex-col gap-1">
@@ -68,17 +74,19 @@ const Navbar: React.FC<NavbarProps> = ({ onSearch, searchTerm }) => {
         </div>
 
         <div className="flex items-center gap-3">
-          <button
-            onClick={() => setIsCartOpen(true)}
-            className="p-2.5 bg-green-900/40 rounded-xl text-green-100 hover:bg-green-800 transition-colors relative border border-green-800/50 backdrop-blur-sm"
-          >
-            <ShoppingCart size={20} />
-            {cartCount > 0 && (
-              <span className="absolute -top-1 -right-1 bg-amber-500 text-[#022c22] text-[10px] font-bold w-4 h-4 rounded-full flex items-center justify-center">
-                {cartCount}
-              </span>
-            )}
-          </button>
+          {!isAdminOrManager && (
+            <button
+              onClick={() => setIsCartOpen(true)}
+              className="p-2.5 bg-green-900/40 rounded-xl text-green-100 hover:bg-green-800 transition-colors relative border border-green-800/50 backdrop-blur-sm"
+            >
+              <ShoppingCart size={20} />
+              {cartCount > 0 && (
+                <span className="absolute -top-1 -right-1 bg-amber-500 text-[#022c22] text-[10px] font-bold w-4 h-4 rounded-full flex items-center justify-center">
+                  {cartCount}
+                </span>
+              )}
+            </button>
+          )}
           <button
             onClick={() => window.dispatchEvent(new CustomEvent('switchTab', { detail: 'profile' }))}
             className="p-2.5 bg-green-900/40 rounded-xl text-green-100 hover:bg-green-800 transition-colors border border-green-800/50 backdrop-blur-sm"
@@ -88,22 +96,24 @@ const Navbar: React.FC<NavbarProps> = ({ onSearch, searchTerm }) => {
         </div>
       </div>
 
-      {/* Search Bar Row */}
-      <div className="flex gap-4">
-        <div className="flex-1 relative">
-          <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-green-400/70" size={20} />
-          <input
-            type="text"
-            value={searchTerm}
-            onChange={(e) => onSearch(e.target.value)}
-            placeholder="Search"
-            className="w-full bg-[#034435] text-white placeholder-green-400/50 pl-12 pr-4 py-3.5 rounded-xl border-none focus:outline-none focus:ring-1 focus:ring-amber-500/50 shadow-inner"
-          />
+      {/* Search Bar Row - Hide for Admins */}
+      {!isAdminOrManager && (
+        <div className="flex gap-4">
+          <div className="flex-1 relative">
+            <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-green-400/70" size={20} />
+            <input
+              type="text"
+              value={searchTerm}
+              onChange={(e) => onSearch(e.target.value)}
+              placeholder="Search"
+              className="w-full bg-[#034435] text-white placeholder-green-400/50 pl-12 pr-4 py-3.5 rounded-xl border-none focus:outline-none focus:ring-1 focus:ring-amber-500/50 shadow-inner"
+            />
+          </div>
+          <button className="bg-amber-500 text-[#022c22] p-3.5 rounded-xl hover:bg-amber-400 transition-colors shadow-lg shadow-amber-900/20">
+            <SlidersHorizontal size={22} />
+          </button>
         </div>
-        <button className="bg-amber-500 text-[#022c22] p-3.5 rounded-xl hover:bg-amber-400 transition-colors shadow-lg shadow-amber-900/20">
-          <SlidersHorizontal size={22} />
-        </button>
-      </div>
+      )}
     </div>
   );
 };

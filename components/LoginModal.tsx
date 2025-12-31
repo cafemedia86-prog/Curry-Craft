@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useAuth, UserRole } from '../context/AuthContext';
 import { ShieldCheck, User, Lock, Mail, Key, UserPlus, X, Phone } from 'lucide-react';
+import logo from '../assets/logo.png';
 
 interface LoginModalProps {
     onClose?: () => void;
@@ -61,9 +62,7 @@ const LoginModal: React.FC<LoginModalProps> = ({ onClose }) => {
                     </button>
                 )}
                 <div className="text-center mb-8">
-                    <div className="w-16 h-16 bg-amber-500/20 rounded-full flex items-center justify-center mx-auto mb-4">
-                        <Lock className="text-amber-500" size={28} />
-                    </div>
+                    <img src={logo} alt="Curry Craft" className="h-24 mx-auto mb-6 object-contain drop-shadow-2xl" />
                     <h2 className="text-2xl font-serif text-white mb-2">
                         {isLogin ? 'Welcome Back' : 'Join Curry Craft'}
                     </h2>

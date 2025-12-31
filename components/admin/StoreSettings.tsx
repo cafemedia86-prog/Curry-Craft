@@ -107,7 +107,7 @@ const StoreSettings: React.FC = () => {
                 </div>
 
                 {/* Map Section */}
-                <div className="bg-[#034435] p-1 rounded-3xl border border-green-800/30 overflow-hidden h-[400px] relative">
+                <div className="bg-[#034435] p-1 rounded-3xl border border-green-800/30 overflow-hidden h-[400px] relative z-0">
                     <MapContainer center={[lat, lng]} zoom={13} style={{ height: '100%', width: '100%' }}>
                         <TileLayer
                             url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
