@@ -3,6 +3,7 @@ import { MapPin, ShoppingCart, User, Search, SlidersHorizontal, Loader2 } from '
 import { useCart } from '../context/CartContext';
 
 import { useAuth } from '../context/AuthContext';
+import { useStoreSettings } from '../hooks/useStoreSettings';
 
 interface NavbarProps {
   onSearch: (query: string) => void;
@@ -13,6 +14,7 @@ interface NavbarProps {
 const Navbar: React.FC<NavbarProps> = ({ onSearch, searchTerm, onFilterClick }) => {
   const { cartCount, setIsCartOpen } = useCart();
   const { user } = useAuth();
+  const { settings } = useStoreSettings();
   const isAdminOrManager = user?.role === 'ADMIN' || user?.role === 'MANAGER';
   const [location, setLocation] = useState('New York, USA');
   const [loadingLocation, setLoadingLocation] = useState(false);
@@ -50,7 +52,8 @@ const Navbar: React.FC<NavbarProps> = ({ onSearch, searchTerm, onFilterClick }) 
 
   return (
     <div className="sticky top-0 z-40 bg-[#0F2E1A] pt-6 pb-4 px-5 shadow-xl rounded-b-3xl border-b border-[#D4A017]/20">
-
+      {/* SEO Heading */}
+      <h1 className="sr-only">{settings?.outlet_name || 'DDH Curry Craft'} - Best North Indian & Fusion Restaurant</h1>
 
       {/* Top Row: Location & Actions */}
       <div className="flex justify-between items-start mb-6">

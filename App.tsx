@@ -16,9 +16,12 @@ import { MenuProvider } from './context/MenuContext';
 import { OrderProvider, useOrders } from './context/OrderContext';
 import { AddressProvider } from './context/AddressContext';
 import { LoyaltyProvider } from './context/LoyaltyContext';
+import { FavoritesProvider } from './context/FavoritesContext';
 import LoginModal from './components/LoginModal';
 import AdminDashboard from './components/admin/AdminDashboard';
 import FilterModal from './components/FilterModal';
+import ViewCartPopup from './components/ViewCartPopup';
+import Footer from './components/Footer';
 
 // --- Main App Component ---
 
@@ -106,8 +109,6 @@ function AppContent() {
         );
     }
 
-    // Simplified: Don't block the whole app if !user
-
     const renderContent = () => {
         if (!user) {
             switch (currentTab) {
@@ -148,7 +149,7 @@ function AppContent() {
         }
 
         if (user.role === 'ADMIN' || user.role === 'MANAGER') {
-            if (currentTab === 'profile') return <ProfilePage />;
+            if (currentTab === 'profile') return <ProfilePage onProductClick={setSelectedProduct} />;
             return <AdminDashboard activeSubTab={adminSubTab} />;
         }
 
@@ -170,7 +171,6 @@ function AppContent() {
                         onBack={() => setCurrentTab('home')}
                         onOrderPlaced={async (orderData) => {
                             await placeOrder(orderData);
-                            // Success state is handled inside CheckoutPage before this returns
                             setTimeout(() => {
                                 setCurrentTab('home');
                             }, 2500);
@@ -191,7 +191,7 @@ function AppContent() {
             case 'wallet':
                 return <WalletPage />;
             case 'profile':
-                return <ProfilePage />;
+                return <ProfilePage onProductClick={setSelectedProduct} />;
             default:
                 return <Menu onProductClick={setSelectedProduct} searchQuery={searchQuery} filters={dishFilters} />;
         }
@@ -206,6 +206,7 @@ function AppContent() {
             />
             <main className="pt-2">
                 {renderContent()}
+                {!(user?.role === 'ADMIN' || user?.role === 'MANAGER') && <Footer />}
             </main>
             <BottomNav
                 activeTab={currentTab === 'profile' ? 'profile' : ((user?.role === 'ADMIN' || user?.role === 'MANAGER') ? adminSubTab : currentTab)}
@@ -213,17 +214,12 @@ function AppContent() {
                 isAdmin={user?.role === 'ADMIN' || user?.role === 'MANAGER'}
             />
             {!(user?.role === 'ADMIN' || user?.role === 'MANAGER') && <CartSidebar />}
+            {!(user?.role === 'ADMIN' || user?.role === 'MANAGER') && <ViewCartPopup />}
             {isAuthModalOpen && (
                 <LoginModal
                     onClose={() => {
                         setIsAuthModalOpen(false);
-                        // If we had a redirect queued, and now we have a user, go there
-                        if (afterAuthRedirect) {
-                            // We don't need to manually trigger because the user state update 
-                            // will re-render, but if they logged in successfully,
-                            // we can try to apply it now if handleTabChange is called.
-                            setAfterAuthRedirect(null);
-                        }
+                        setAfterAuthRedirect(null);
                     }}
                 />
             )}
@@ -247,15 +243,17 @@ function App() {
     return (
         <AuthProvider>
             <MenuProvider>
-                <LoyaltyProvider>
-                    <OrderProvider>
-                        <CartProvider>
-                            <AddressProvider>
-                                <AppContent />
-                            </AddressProvider>
-                        </CartProvider>
-                    </OrderProvider>
-                </LoyaltyProvider>
+                <FavoritesProvider>
+                    <LoyaltyProvider>
+                        <OrderProvider>
+                            <CartProvider>
+                                <AddressProvider>
+                                    <AppContent />
+                                </AddressProvider>
+                            </CartProvider>
+                        </OrderProvider>
+                    </LoyaltyProvider>
+                </FavoritesProvider>
             </MenuProvider>
         </AuthProvider>
     );

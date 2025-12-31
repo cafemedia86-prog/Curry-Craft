@@ -62,7 +62,6 @@ export const CartProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       }
       return [...prev, { ...product, quantity: 1 }];
     });
-    setIsCartOpen(true);
     // Reset coupon on cart change to re-validate? Or just keep it. 
     // Ideally we should re-validate, but for now let's keep it simple.
     // If strict, we remove coupon on cart modification.
@@ -79,10 +78,11 @@ export const CartProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       return prev.map((item) => {
         if (item.id === itemId) {
           const newQuantity = item.quantity + delta;
-          return newQuantity > 0 ? { ...item, quantity: newQuantity } : item;
+          if (newQuantity <= 0) return null;
+          return { ...item, quantity: newQuantity };
         }
         return item;
-      });
+      }).filter(Boolean) as CartItem[];
     });
     if (couponCode) removeCoupon();
   }, [couponCode]);

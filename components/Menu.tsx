@@ -1,10 +1,12 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { CATEGORIES } from '../constants';
 import { MenuItem, DishFilter } from '../types';
-import { Heart, Star, Plus, SearchX, ShoppingBag, Leaf, Circle } from 'lucide-react';
+import { Heart, Star, Plus, SearchX, ShoppingBag } from 'lucide-react';
 import CategoryRail from './CategoryRail';
 import { useCart } from '../context/CartContext';
 import { useMenu } from '../context/MenuContext';
+import { useFavorites } from '../context/FavoritesContext';
+import QuantitySelector from './QuantitySelector';
 
 interface MenuProps {
     onProductClick: (product: MenuItem) => void;
@@ -14,8 +16,8 @@ interface MenuProps {
 }
 
 const Menu: React.FC<MenuProps> = ({ onProductClick, searchQuery, filters }) => {
-    const { addToCart } = useCart();
     const { menu, isLoading } = useMenu();
+    const { toggleFavorite, isFavorite } = useFavorites();
     const [activeCategory, setActiveCategory] = useState(CATEGORIES[0].id);
 
     // Search Logic
@@ -89,8 +91,17 @@ const Menu: React.FC<MenuProps> = ({ onProductClick, searchQuery, filters }) => 
                                         <span className="text-[#0F2E1A] text-[10px] font-bold">{item.rating || '4.5'}</span>
                                     </div>
 
-                                    <button className="absolute top-2 right-2 w-7 h-7 bg-white rounded-full flex items-center justify-center text-red-500 shadow-sm">
-                                        <Heart size={14} fill="currentColor" />
+                                    <button
+                                        onClick={(e) => {
+                                            e.stopPropagation();
+                                            toggleFavorite(item.id.toString());
+                                        }}
+                                        className={`absolute top-2 right-2 w-8 h-8 rounded-full flex items-center justify-center shadow-sm transition-all active:scale-90 ${isFavorite(item.id.toString())
+                                                ? 'bg-red-50 text-red-500'
+                                                : 'bg-white/90 text-zinc-400 hover:text-red-400'
+                                            }`}
+                                    >
+                                        <Heart size={16} fill={isFavorite(item.id.toString()) ? "currentColor" : "none"} />
                                     </button>
                                 </div>
 
@@ -106,15 +117,7 @@ const Menu: React.FC<MenuProps> = ({ onProductClick, searchQuery, filters }) => 
 
                                 <div className="flex justify-between items-center px-1 mt-3">
                                     <span className="text-[#D4A017] font-bold text-lg">₹{item.price}</span>
-                                    <button
-                                        onClick={(e) => {
-                                            e.stopPropagation();
-                                            addToCart(item);
-                                        }}
-                                        className="w-9 h-9 bg-[#0F2E1A] rounded-full flex items-center justify-center text-white hover:bg-[#D4A017] transition-colors shadow-lg shadow-[#0F2E1A]/10"
-                                    >
-                                        <Plus size={18} />
-                                    </button>
+                                    <QuantitySelector item={item} />
                                 </div>
                             </div>
                         ))}
@@ -162,7 +165,7 @@ const Menu: React.FC<MenuProps> = ({ onProductClick, searchQuery, filters }) => 
                             <div
                                 key={item.id}
                                 onClick={() => onProductClick(item)}
-                                className="bg-white rounded-3xl p-3 mb-4 flex gap-4 shadow-sm border border-[#E6E0D5] hover:border-[#D4A017]/30 transition-all cursor-pointer group"
+                                className="bg-white rounded-3xl p-3 mb-4 flex gap-4 shadow-sm border border-[#E6E0D5] hover:border-[#D4A017]/30 transition-all cursor-pointer group relative"
                             >
                                 <div className="h-28 w-28 rounded-2xl overflow-hidden flex-shrink-0 relative">
                                     <img src={item.image} alt={item.name} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
@@ -170,6 +173,18 @@ const Menu: React.FC<MenuProps> = ({ onProductClick, searchQuery, filters }) => 
                                         <Star size={8} className="text-[#D4A017] fill-[#D4A017]" />
                                         <span className="text-[#0F2E1A] text-[9px] font-bold">{item.rating || '4.5'}</span>
                                     </div>
+                                    <button
+                                        onClick={(e) => {
+                                            e.stopPropagation();
+                                            toggleFavorite(item.id.toString());
+                                        }}
+                                        className={`absolute bottom-2 right-2 w-7 h-7 rounded-full flex items-center justify-center shadow-md transition-all active:scale-90 ${isFavorite(item.id.toString())
+                                                ? 'bg-red-50 text-red-500'
+                                                : 'bg-white/90 text-zinc-400'
+                                            }`}
+                                    >
+                                        <Heart size={12} fill={isFavorite(item.id.toString()) ? "currentColor" : "none"} />
+                                    </button>
                                 </div>
 
                                 <div className="flex-1 flex flex-col justify-between py-1">
@@ -185,15 +200,7 @@ const Menu: React.FC<MenuProps> = ({ onProductClick, searchQuery, filters }) => 
                                     </div>
                                     <div className="flex justify-between items-center mt-2">
                                         <span className="text-[#D4A017] font-bold text-lg">₹{item.price}</span>
-                                        <button
-                                            onClick={(e) => {
-                                                e.stopPropagation();
-                                                addToCart(item);
-                                            }}
-                                            className="w-8 h-8 bg-[#0F2E1A] rounded-full flex items-center justify-center text-white hover:bg-[#D4A017] transition-colors shadow-lg shadow-[#0F2E1A]/10"
-                                        >
-                                            <Plus size={16} />
-                                        </button>
+                                        <QuantitySelector item={item} size="sm" />
                                     </div>
                                 </div>
                             </div>

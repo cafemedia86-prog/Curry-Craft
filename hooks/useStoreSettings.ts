@@ -6,6 +6,13 @@ export interface StoreSettings {
     outlet_name: string;
     outlet_latitude: number;
     outlet_longitude: number;
+    address: string;
+    phone: string;
+    email: string;
+    facebook_url: string;
+    instagram_url: string;
+    twitter_url: string;
+    about_text: string;
 }
 
 export const useStoreSettings = () => {
@@ -35,14 +42,12 @@ export const useStoreSettings = () => {
         }
     };
 
-    const updateSettings = async (lat: number, lng: number) => {
+    const updateSettings = async (updates: Partial<StoreSettings>) => {
         try {
-            // Upsert based on known ID usually, or just update the single row
-            // If we don't know ID, we might assume ID=1 or fetch first.
             const { error } = await supabase
                 .from('store_settings')
-                .update({ outlet_latitude: lat, outlet_longitude: lng })
-                .gt('id', 0); // Update any row (conceptually singleton)
+                .update(updates)
+                .gt('id', 0);
 
             if (error) throw error;
             await fetchSettings();

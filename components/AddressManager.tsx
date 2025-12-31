@@ -43,14 +43,14 @@ const AddressManager: React.FC = () => {
         <div className="animate-in fade-in duration-500">
             <div className="flex justify-between items-center mb-6">
                 <div>
-                    <h3 className="text-xl font-serif text-white mb-1">Saved Addresses</h3>
-                    <p className="text-green-400/40 text-xs">Manage your delivery locations</p>
+                    <h3 className="text-2xl font-serif font-bold text-[#0F2E1A] mb-1">Saved Addresses</h3>
+                    <p className="text-[#0F2E1A]/60 text-xs font-medium">Manage your delivery locations</p>
                 </div>
                 <button
                     onClick={() => setIsPickerOpen(true)}
-                    className="bg-amber-500/10 text-amber-500 p-3 rounded-2xl hover:bg-amber-500 hover:text-[#022c22] transition-all flex items-center gap-2 border border-amber-500/20"
+                    className="bg-white text-[#0F2E1A] px-4 py-2.5 rounded-2xl hover:bg-[#F5F1E8] transition-all flex items-center gap-2 border border-[#E6E0D5] shadow-sm shadow-black/5"
                 >
-                    <Plus size={20} />
+                    <Plus size={18} className="text-[#D4A017]" />
                     <span className="text-sm font-bold">Add New</span>
                 </button>
             </div>

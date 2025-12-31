@@ -76,18 +76,18 @@ const CartSidebar: React.FC = () => {
                     <div className="text-amber-500 font-bold text-sm mt-1">₹ {item.price * item.quantity}</div>
                   </div>
 
-                  <div className="flex items-center gap-3 bg-green-900 rounded-full px-2 py-1">
+                  <div className="flex items-center gap-3 bg-green-900/80 rounded-full px-2 py-1 border border-green-800">
                     <button
                       onClick={() => updateQuantity(item.id, -1)}
-                      className="p-1 hover:text-amber-400 text-green-300"
+                      className="p-1 hover:text-amber-400 text-white transition-colors"
                       disabled={item.quantity <= 1}
                     >
                       <Minus size={14} />
                     </button>
-                    <span className="text-sm font-bold w-4 text-center">{item.quantity}</span>
+                    <span className="text-sm font-bold w-4 text-center text-white">{item.quantity}</span>
                     <button
                       onClick={() => updateQuantity(item.id, 1)}
-                      className="p-1 hover:text-amber-400 text-green-300"
+                      className="p-1 hover:text-amber-400 text-white transition-colors"
                     >
                       <Plus size={14} />
                     </button>
@@ -144,17 +144,17 @@ const CartSidebar: React.FC = () => {
             </div>
 
             <div className="space-y-2 mb-4">
-              <div className="flex justify-between text-green-300 text-sm">
+              <div className="flex justify-between text-white text-sm font-medium">
                 <span>Subtotal</span>
                 <span>₹ {cartTotal}</span>
               </div>
               {discountAmount > 0 && (
-                <div className="flex justify-between text-amber-400 text-sm">
+                <div className="flex justify-between text-amber-400 text-sm font-bold">
                   <span>Discount</span>
                   <span>- ₹ {discountAmount}</span>
                 </div>
               )}
-              <div className="flex justify-between text-green-300 text-sm">
+              <div className="flex justify-between text-white text-sm font-medium">
                 <span>Taxes (5%)</span>
                 <span>₹ {taxes}</span>
               </div>
